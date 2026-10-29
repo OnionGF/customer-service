@@ -37,7 +37,7 @@ class Flow:
         return None
 
 @dataclass(slots=True)
-class FlowList:
+class FlowsList:
     """
     存放两个yaml文件的流程（业务流程以及系统流程）
     """

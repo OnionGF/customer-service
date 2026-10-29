@@ -11,7 +11,6 @@ from typing import  Dict, Any
 from enum import Enum
 from dataclasses import field, dataclass
 
-
 class MessageType(Enum):
     TEXT = "text"           # 文本类型
     OBJECT = "object"       # 对象类型
@@ -48,7 +47,6 @@ class FocusedObject:
             title=data.get("title", ""),
             attributes=data.get("attributes", {})
         )
-
 
 @dataclass(slots=True)
 class UserMessage:
@@ -97,3 +95,9 @@ class BotMessage:
             text = data.get("text"),
             object = FocusedObject.from_dict(data['object']) if data.get("object") else None
         )
+
+@dataclass(slots=True)
+class ProcessResult:
+    sender_id: str              # 用户ID
+    message_id: str             # 消息ID （内部生成）
+    messages: list[BotMessage]  # 回复消息（机器人回复的所有消息给前端）
