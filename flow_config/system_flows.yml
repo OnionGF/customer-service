@@ -102,6 +102,7 @@ flows:
       - id: end
         type: end
         next: []
+
   system_cannot_handle:
     description: Flow for handling requests the assistant cannot support
     name: cannot handle request

@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from atguigu.domain.state import Turn, Session
-from atguigu.domain.messages import UserMessage, BotMessage, FocusedObject, MessageType, ChatHistoryMessage
+from atguigu.domain.messages import UserMessage, BotMessage, ObjectTypeMessage, MessageType, ChatHistoryMessage
 
 
 class HistoryBuilder:
@@ -48,7 +48,7 @@ class HistoryBuilder:
         return text.strip()
 
     @classmethod
-    def _render_obj_msg(cls, object_msg: FocusedObject) -> str:
+    def _render_obj_msg(cls, object_msg: ObjectTypeMessage) -> str:
         """
         id
         type

@@ -1,28 +1,40 @@
 import uuid
-
 from fastapi import APIRouter, Depends
-
-from atguigu.api.dependencies import get_dialogue_service
 from atguigu.api.schema import ChatResponse, ChatRequest, ChatBotMessage, ChatObject
-from atguigu.domain.messages import UserMessage, MessageType, FocusedObject, ProcessResult
+from atguigu.domain.messages import UserMessage, MessageType, ObjectTypeMessage, ProcessResult, ChatHistoryMessage
+from atguigu.api.dependencies import get_dialogue_service
 from atguigu.service.dialogue_service import DialogueService
+from atguigu.api.schema import ChatMessageResponse
 
 router = APIRouter()
+
+
+# 1. 定义路由接口
+
 
 @router.post("/api/chat")
 async def chat_endpoint(
         chat_request: ChatRequest,
-        service: DialogueService = Depends(get_dialogue_service),
+        dialogue_service: DialogueService = Depends(get_dialogue_service)
 ) -> ChatResponse:
-
-    # 1、处理输入接口模型
+    # 1. 处理输入接口模型
     user_message = _build_user_message(chat_request)
 
-    # 2、业务处理
-    process_result:ProcessResult = await service.hand_message(user_message)
+    # 2. 业务处理
+    process_result: ProcessResult = await dialogue_service.handle_message(user_message)
 
-    # 3、处理输出接口模型
+    # 3. 处理输出接口模型
     return _build_chat_response(process_result)
+
+
+@router.get("/api/chat/history", response_model=ChatMessageResponse)
+async def chat_history_endpoint(sender_id: str,
+                                service: DialogueService = Depends(get_dialogue_service)
+                                ) -> ChatMessageResponse:
+    chat_history = await service.load_chat_history(sender_id)
+
+    return ChatMessageResponse(sender_id=sender_id, messages=chat_history)
+
 
 def _build_user_message(chat_request: ChatRequest) -> UserMessage:
     """
@@ -35,12 +47,12 @@ def _build_user_message(chat_request: ChatRequest) -> UserMessage:
         message_id=chat_request.message_id if chat_request.message_id else str(uuid.uuid4()),
         type=MessageType.TEXT if chat_request.text else MessageType.OBJECT,
         text=chat_request.text,
-        object=FocusedObject(
+        object=ObjectTypeMessage(
             id=chat_request.object.id,
             type=chat_request.object.type,
             title=chat_request.object.title,
             attributes=chat_request.object.attributes,
-        ) if chat_request.object else None,
+        ) if chat_request.object else None
     )
 
 
@@ -55,8 +67,8 @@ def _build_chat_response(process_result: ProcessResult) -> ChatResponse:
                     type=bot_msg.object.type,
                     id=bot_msg.object.id,
                     title=bot_msg.object.title,
-                    attributes=bot_msg.object.attributes,
-                ) if bot_msg.object else None,
+                    attributes=bot_msg.object.attributes
+                ) if bot_msg.object else None
             )
             for bot_msg in process_result.messages
         ]

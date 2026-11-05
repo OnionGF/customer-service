@@ -1,5 +1,5 @@
 from typing import Dict
-from atguigu.plan.turn_plan import TurnPlan, ClarifyReason, TurnPlanValidationResult
+from atguigu.plan.turn_planer import TurnPlan, ClarifyReason, TurnPlanValidationResult
 from atguigu.task.flow.flows import FlowsList
 from atguigu.task.command.models import StartFlowCommand, SetSlotsCommand, ResumeFlowCommand, CancelFlowCommand
 from atguigu.knowledge.intents import KnowledgeIntent

@@ -12,7 +12,7 @@ from atguigu.config.config import settings
 from sqlalchemy import text
 
 engine: AsyncEngine | None = None
-async_session: async_sessionmaker[AsyncSession]
+async_session: async_sessionmaker[AsyncSession] | None = None
 
 
 def init_db_engine():
@@ -29,17 +29,17 @@ def init_db_engine():
 async def close_db_engine():
     await engine.dispose()
 
-#
-# async def main():
-#     init_db_engine()
-#
-#     async  with async_session() as session:
-#         result = await session.execute(text("select 1"))  # 测试是否通（core）
-#         # print(type(result.fetchone()))
-#         print(result.fetchone())
-#
-#     await close_db_engine()
-#
-#
-# if __name__ == '__main__':
-#     asyncio.run(main())
+
+async def main():
+    init_db_engine()
+
+    async  with async_session() as session:
+        result = await session.execute(text("select 1"))  # 测试是否通（core）
+        # print(type(result.fetchone()))
+        print(result.fetchone())
+
+    await close_db_engine()
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
