@@ -104,6 +104,7 @@ class FlowExecutor:
         # 2. 返回None
         return None
 
+    # 提取是为了复用
     def _advance_next_step(self, state, step):
         # 1. 寻找下一个step边
         next_step_id = self._select_next_step(step, state)
@@ -202,9 +203,11 @@ class FlowExecutor:
     def _try_to_fill_collect_slot_focused_object(self, state: DialogueState,
                                                  step: CollectSlotStep):
 
+        # 没有点击卡片
         if state.focused_object is None:
             return None
 
+        # focused_object 有值  order_number，product_id可以复用
         if step.slot_name == 'order_number' and state.focused_object.type == "order":
             state.set_slots({step.slot_name: state.focused_object.id})
         if step.slot_name == "product_id" and state.focused_object.type == "product":

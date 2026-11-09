@@ -71,7 +71,7 @@ class Session:
 class DialogueState:
     sender_id: str  # 必须传入
     active_task: TaskContext | None = None  # 当前执行的业务任务
-    paused_tasks: list[TaskContext] = field(default_factory=list)  # 当期暂停的业务任务（多个）
+    paused_tasks: list[TaskContext] = field(default_factory=list)  # 暂停任务列表（被中断、可恢复的业务任务）
     active_system_task: SystemContext | None = None  # 当前执行的系统流程
     focused_object: ObjectTypeMessage | None = None
     sessions: list[Session] = field(default_factory=list)  # 当前用户的所有回话都存储起来
@@ -134,27 +134,27 @@ class DialogueState:
         """
         self.active_task = None
 
-    def interrupted_active_task(self, task: TaskContext):
+    def interrupted_active_task(self):
         """
-        中断活跃任务
+        中断当前业务任务，放入暂停任务列表
         :return:
         """
 
-        self.paused_tasks.append(task if task else self.active_task)
+        self.paused_tasks.append(self.active_task)
         self.active_task = None
 
     def resumed_task(self, flow_id: str | None = None) -> bool:
         """
-        恢复业务任务:流程ID
-        :return: 要不恢复成功 要不就是回复失败
+        从暂停任务列表恢复业务任务；可指定 flow_id，不指定则恢复最近挂起的那个
+        :return: 恢复成功返回 True，否则 False
         """
 
-        # 1. 判断栈中是否存在中断的业务任务
+        # 1. 判断暂停任务列表里是否有任务
         if not self.paused_tasks:
             return False
 
         # 2. 判断业务流程ID 是否存在
-        # 2.1 如果不存在(只能恢复栈顶的)
+        # 2.1 如果不指定 flow_id：恢复暂停任务列表末尾那个（最近挂起的）
         if flow_id is None:
             task = self.paused_tasks.pop()
             self.active_task = task

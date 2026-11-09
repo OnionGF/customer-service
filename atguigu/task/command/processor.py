@@ -125,6 +125,10 @@ class CommandProcessor:
         开启业务任务：1)
         业务任务的流程ID: command.flow
         业务任务的流程名字：_readable_flow_name()
+        核心逻辑
+        已经在跑同名任务 → 什么都不做
+        有别的任务在跑 → 中断别人 →（暂停任务列表里有自己就恢复 / 没有就新开）→ 播「中断」系统话术
+        当前空闲 →（暂停任务列表里有自己就恢复 / 没有就新开）→ 播「恢复」或「开启」系统话术
         :param state:
         :param command:
         :param flow_list:
@@ -157,8 +161,8 @@ class CommandProcessor:
             interrupted_flow_id = active_task.flow_id
             interrupted_flow_name = self._readable_flow_name(active_task.flow_id, flow_list)
 
-            # b.2) 检查自己是否在栈中
-            # ①：栈中没你 需要新开，引出中断开场白
+            # b.2) 检查自己是否在暂停任务列表中
+            # ①：暂停任务列表里没有 → 需要新开，引出中断开场白
             if not state.resumed_task(command.flow):
                 started_flow_id = command.flow
                 started_flow_name = self._readable_flow_name(command.flow, flow_list)
@@ -167,7 +171,7 @@ class CommandProcessor:
                     flow_id=target_flow.id,
                     step_id=target_flow.start_step().id
                 ))
-            # ②：栈中有你（之前存的状态是怎样，就是怎样）不用重复开，引出中断开场白
+            # ②：暂停任务列表里有 → 恢复原进度，不用重复开，引出中断开场白
             else:
 
                 started_flow_id = command.flow
@@ -184,7 +188,7 @@ class CommandProcessor:
             return
 
         # 1.2 当前没有业务任务（活跃）
-        # 栈中有你（之前存的状态是怎样，就是怎样）不用重复开.不需要开启的过长表
+        # 暂停任务列表里有 → 恢复原进度，不用重复开，也不需要开启过场白
         resumed = state.resumed_task(command.flow)  # 试着恢复同名任务
         if resumed:
             self._activate_resumed_system_flow(
@@ -194,7 +198,7 @@ class CommandProcessor:
                 resumed_flow_name=self._readable_flow_name(command.flow, flow_list),
             )
             return
-        # 栈中没你 需要新开，引出开启系统流程的开场白
+        # 暂停任务列表里没有 → 需要新开，引出开启系统流程的开场白
         state.start_task(TaskContext(
             flow_id=target_flow.id,
             step_id=target_flow.start_step().id
@@ -247,7 +251,7 @@ class CommandProcessor:
             target_flow_id = target_flow.id
             target_flow_name = target_flow.name
         else:
-            # 不指名恢复:用户只说"继续刚才的" → 取暂停栈栈顶(最近挂起的)
+            # 不指名恢复:用户只说"继续刚才的" → 取暂停任务列表末尾(最近挂起的)
             if not state.paused_tasks:
                 return
             top_paused = state.paused_tasks[-1]
@@ -263,7 +267,7 @@ class CommandProcessor:
             if active_task.flow_id == target_flow_id:
                 return
 
-            state.interrupted_active_task()  # 将当前正在执行的业务任务流程压入栈
+            state.interrupted_active_task()  # 将当前业务任务放入暂停任务列表
             interrupted_flow_id = active_task.flow_id
             interrupted_flow_name = self._readable_flow_name(active_task.flow_id, flow_list)
 
@@ -282,7 +286,7 @@ class CommandProcessor:
             if not state.resumed_task(command.flow):  # ④没任务,直接恢复
                 return
 
-            resumed = state.active_task  # 获取从栈中恢复的业务流程
+            resumed = state.active_task  # 获取从暂停任务列表恢复的业务流程
             self._activate_resumed_system_flow(
                 state, flow_list,
                 resumed_flow_id=resumed.flow_id,

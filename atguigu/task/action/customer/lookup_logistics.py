@@ -8,7 +8,10 @@ from atguigu.task.action.customer.shared import fetch_logistics
 class LookUpLogisticsAction(Action):
     name = "action_lookup_logistics"
 
-    async def run(self, state: DialogueState, action_kwargs: dict[str, Any]) -> ActionResult:
+    async def run(self,
+                  state: DialogueState,
+                  action_kwargs: dict[str, Any]
+                  ) -> ActionResult:
         """
         调用电商平台查询物流信息接口
         :param state:

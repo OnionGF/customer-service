@@ -4,8 +4,8 @@ import pkgutil
 from atguigu.task.action.runner import ActionRunner
 from atguigu.task.action.registry import ActionRegistry
 from atguigu.task.action.base import Action
-from atguigu.task.action.builtin.listener import ActionListener
-from atguigu.task.action.builtin.response import ActionResponse
+from atguigu.task.action.inner.listener import ActionListener
+from atguigu.task.action.inner.response import ActionResponse
 
 
 def register_builtin_action(action_runner: ActionRunner):
