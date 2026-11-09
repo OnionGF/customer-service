@@ -12,7 +12,9 @@ from atguigu.prompts.history_builder import HistoryBuilder
 class ActionResponse(Action):
     name = "action_response"
 
-    async def run(self, state: DialogueState, action_kwargs: dict[str, Any]) -> ActionResult:
+    async def run(self,
+                    state: DialogueState,
+                    action_kwargs: dict[str, Any]) -> ActionResult:
         """
         响应内容
         :param state:
